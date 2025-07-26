@@ -14,6 +14,7 @@ import telran.java58.person.dto.exception.PersonNotFoundException;
 import telran.java58.person.model.Address;
 import telran.java58.person.model.Person;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,6 +62,7 @@ public class PersonServiceImpl implements PersonService {
 //    }
 
     @Override
+    @Transactional
     public PersonDto updatePersonAddress(int id, AddressDto addressDto) {
         if (addressDto == null) {
             throw new AddressIllegalException();
@@ -99,11 +101,15 @@ public class PersonServiceImpl implements PersonService {
     @Override
     //TODO
     public PersonDto[] findPersonsBetweenAges(int minAge, int maxAge) {
+        LocalDate from = LocalDate.now().minusYears(maxAge);
+        LocalDate to = LocalDate.now().minusYears(minAge);
+        List<Person> persons = personRepository.findAll();
 //        List<Person> person = personRepository.findPersonsBetweenAges(minAge, maxAge);
-//        return person.stream()
-//                .map(p -> modelMapper.map(p,PersonDto.class))
-//                .toArray(PersonDto[]::new);
-        return null;
+        return persons.stream()
+                .filter(p -> (p.getBirthDate().isAfter(from) && p.getBirthDate().isBefore(to)))
+                .map(p -> modelMapper.map(p,PersonDto.class))
+                .toArray(PersonDto[]::new);
+
     }
 //TODO
     @Override
