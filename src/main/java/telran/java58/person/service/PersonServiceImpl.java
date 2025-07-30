@@ -52,7 +52,7 @@ public class PersonServiceImpl implements PersonService {
     public PersonDto updatePersonName(int id, String name) {
         Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
         person.setName(name);
-        personRepository.save(person);
+//        personRepository.save(person);
         return modelMapper.map(person, PersonDto.class);
     }
 
@@ -67,8 +67,10 @@ public class PersonServiceImpl implements PersonService {
         if (addressDto == null) {
             throw new AddressIllegalException();
         }
+//        person.setAddress(modelMapper.map(addressDto, Address.class));
 
         Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
+
         if (addressDto.getCity() != null) {
             person.getAddress().setCity(addressDto.getCity());
         }
@@ -84,34 +86,60 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public PersonDto[] findPersonsByName(String name) {
-        List<Person> persons = personRepository.findByNameIgnoreCase(name);
-        return persons.stream()
-                .map(person -> modelMapper.map(person, PersonDto.class))
-                .toArray(PersonDto[]::new);
+        return modelMapper.map(personRepository.findArrayByNameIgnoreCase(name), PersonDto[].class);
+
+//                Arrays.stream(personRepository.findArrayByNameIgnoreCase(name))
+//                .map(p -> modelMapper.map(p, PersonDto.class))
+//                .toArray(PersonDto[]::new);
     }
 
+
+    //    @Override
+//    @Transactional(readOnly = true)
+//    public PersonDto[] findPersonsByName(String name){
+//        return personRepository.findStreamByNameIgnoreCase(name)
+//                .map(p->modelMapper.map(p,PersonDto.class))
+//                .toArray(PersonDto[]::new);
+//    }
+//    public PersonDto[] findPersonsByName(String name) {
+//        List<Person> persons = personRepository.findByNameIgnoreCase(name);
+//        return persons.stream()
+//                .map(person -> modelMapper.map(person, PersonDto.class))
+//                .toArray(PersonDto[]::new);
+//    }
     @Override
+    @Transactional(readOnly = true)
     public PersonDto[] findPersonsByCity(String city) {
-        List<Person> persons = personRepository.findByAddress_City(city);
-        return persons.stream()
+
+        return personRepository.findStreamByAddressCityIgnoreCase(city)
                 .map(p -> modelMapper.map(p, PersonDto.class))
-                .toArray(PersonDto[]::new);
+                .toArray(PersonDto[]::new)
+                ;
     }
+//    @Override
+//    public PersonDto[] findPersonsByCity(String city) {
+//        List<Person> persons = personRepository.findByAddress_City(city);
+//        return persons.stream()
+//                .map(p -> modelMapper.map(p, PersonDto.class))
+//                .toArray(PersonDto[]::new);
+//    }
 
     @Override
     //TODO
     public PersonDto[] findPersonsBetweenAges(int minAge, int maxAge) {
         LocalDate from = LocalDate.now().minusYears(maxAge);
         LocalDate to = LocalDate.now().minusYears(minAge);
-        List<Person> persons = personRepository.findAll();
-//        List<Person> person = personRepository.findPersonsBetweenAges(minAge, maxAge);
-        return persons.stream()
-                .filter(p -> (p.getBirthDate().isAfter(from) && p.getBirthDate().isBefore(to)))
-                .map(p -> modelMapper.map(p,PersonDto.class))
-                .toArray(PersonDto[]::new);
+        return modelMapper.map(personRepository.findArrayByBirthDateBetween(from, to), PersonDto[].class);
+//        List<Person> persons = personRepository.findAll();
+////        List<Person> person = personRepository.findPersonsBetweenAges(minAge, maxAge);
+//        return persons.stream()
+//                .filter(p -> (p.getBirthDate().isAfter(from) && p.getBirthDate().isBefore(to)))
+//                .map(p -> modelMapper.map(p, PersonDto.class))
+//                .toArray(PersonDto[]::new);
 
     }
-//TODO
+
+    //TODO
     @Override
     public Iterable<CityPopulationDto> getCitiesPopulation() {
         return personRepository.getCitiesPopulation();

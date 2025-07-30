@@ -21,6 +21,6 @@ public class Person {
     private String name;
     private LocalDate birthDate;
     @Setter
-    @Embedded
+//    @Embedded
     private Address address;
 }
