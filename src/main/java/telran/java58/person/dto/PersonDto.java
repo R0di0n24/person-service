@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ChildDto.class, name = "child"),
-        @JsonSubTypes.Type(value = EmploeeyDto.class, name = "employee"),
+        @JsonSubTypes.Type(value = EmployeeDto.class, name = "employee"),
         @JsonSubTypes.Type(value = PersonDto.class, name = "person")
 })
 public class PersonDto {

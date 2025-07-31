@@ -7,6 +7,8 @@ import org.springframework.data.repository.query.Param;
 import telran.java58.person.dto.CityPopulationDto;
 import telran.java58.person.dto.PersonDto;
 import telran.java58.person.model.Address;
+import telran.java58.person.model.Child;
+import telran.java58.person.model.Employee;
 import telran.java58.person.model.Person;
 
 import java.time.LocalDate;
@@ -51,5 +53,10 @@ public interface PersonRepository extends JpaRepository<Person, Integer> { //gen
     @Query("select new telran.java58.person.dto.CityPopulationDto(p.address.city, count (p)) from Person p group by p.address.city order by count(p)")
     List<CityPopulationDto> getCitiesPopulation();
 
+    @Query("select c from Child c")
+    Child[] findAllPersonTypeChild();
+
+    @Query("select e from Employee e where e.salary between ?1 and ?2")
+    Employee[] findEmployeeBySalaryBetween(int from, int to);
 
 }

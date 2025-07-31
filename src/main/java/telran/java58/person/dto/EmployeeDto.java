@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmploeeyDto extends PersonDto{
+public class EmployeeDto extends PersonDto{
     private String company;
     private int salary;
 }

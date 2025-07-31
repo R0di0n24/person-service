@@ -30,29 +30,14 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
         if (personRepository.existsById(personDto.getId())) {
             throw new PersonExistsException();
         }
-        if (personDto instanceof EmploeeyDto) {
-            personRepository.save(modelMapper.map(personDto, Employee.class));
-            return;
-        }
-        if (personDto instanceof ChildDto) {
-            personRepository.save(modelMapper.map(personDto, Child.class));
-            return;
-        }
-
-            personRepository.save(modelMapper.map(personDto, Person.class));
+        personRepository.save(responseTypeOfEntityDto(personDto));
 
     }
 
     @Override
     public PersonDto getPerson(int id) {
         Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
-        if (person instanceof Child) {
-            return modelMapper.map(person, ChildDto.class);
-        }
-        if (person instanceof Employee) {
-            return modelMapper.map(person, EmploeeyDto.class);
-        }
-        return modelMapper.map(person, PersonDto.class);
+        return responseTypeOfEntity(person);
     }
 
     @Override
@@ -60,7 +45,7 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
     public PersonDto deletePerson(int id) {
         Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
         personRepository.delete(person);
-        return modelMapper.map(person, PersonDto.class);
+        return responseTypeOfEntity(person);
     }
 
     @Override
@@ -69,13 +54,8 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
         Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
         person.setName(name);
 //        personRepository.save(person);
-        return modelMapper.map(person, PersonDto.class);
+        return responseTypeOfEntity(person);
     }
-
-//    @Override
-//    public PersonDto updatePersonAddress(int id, AddressDto address) {
-//        return null;
-//    }
 
     @Override
     @Transactional
@@ -83,8 +63,6 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
         if (addressDto == null) {
             throw new AddressIllegalException();
         }
-//        person.setAddress(modelMapper.map(addressDto, Address.class));
-
         Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
 
         if (addressDto.getCity() != null) {
@@ -96,33 +74,18 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
         if (addressDto.getBuilding() != null) {  // && addressDto.getBuilding() > 0 maybe needs)
             person.getAddress().setBuilding(addressDto.getBuilding());
         }
-        personRepository.save(person);
-        return modelMapper.map(person, PersonDto.class);
+//        personRepository.save(person);
+        return responseTypeOfEntity(person);
     }
 
     @Override
     public PersonDto[] findPersonsByName(String name) {
-        return modelMapper.map(personRepository.findArrayByNameIgnoreCase(name), PersonDto[].class);
-
-//                Arrays.stream(personRepository.findArrayByNameIgnoreCase(name))
-//                .map(p -> modelMapper.map(p, PersonDto.class))
-//                .toArray(PersonDto[]::new);
+        return Arrays.stream(personRepository.findArrayByNameIgnoreCase(name))
+                .map(this::responseTypeOfEntity)
+                .toArray(PersonDto[]::new);
+        //modelMapper.map(personRepository.findArrayByNameIgnoreCase(name), PersonDto[].class);
     }
 
-
-    //    @Override
-//    @Transactional(readOnly = true)
-//    public PersonDto[] findPersonsByName(String name){
-//        return personRepository.findStreamByNameIgnoreCase(name)
-//                .map(p->modelMapper.map(p,PersonDto.class))
-//                .toArray(PersonDto[]::new);
-//    }
-//    public PersonDto[] findPersonsByName(String name) {
-//        List<Person> persons = personRepository.findByNameIgnoreCase(name);
-//        return persons.stream()
-//                .map(person -> modelMapper.map(person, PersonDto.class))
-//                .toArray(PersonDto[]::new);
-//    }
     @Override
     @Transactional(readOnly = true)
     public PersonDto[] findPersonsByCity(String city) {
@@ -132,33 +95,29 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
                 .toArray(PersonDto[]::new)
                 ;
     }
-//    @Override
-//    public PersonDto[] findPersonsByCity(String city) {
-//        List<Person> persons = personRepository.findByAddress_City(city);
-//        return persons.stream()
-//                .map(p -> modelMapper.map(p, PersonDto.class))
-//                .toArray(PersonDto[]::new);
-//    }
-
     @Override
-    //TODO
     public PersonDto[] findPersonsBetweenAges(int minAge, int maxAge) {
         LocalDate from = LocalDate.now().minusYears(maxAge);
         LocalDate to = LocalDate.now().minusYears(minAge);
-        return modelMapper.map(personRepository.findArrayByBirthDateBetween(from, to), PersonDto[].class);
-//        List<Person> persons = personRepository.findAll();
-////        List<Person> person = personRepository.findPersonsBetweenAges(minAge, maxAge);
-//        return persons.stream()
-//                .filter(p -> (p.getBirthDate().isAfter(from) && p.getBirthDate().isBefore(to)))
-//                .map(p -> modelMapper.map(p, PersonDto.class))
-//                .toArray(PersonDto[]::new);
+        return Arrays.stream(personRepository.findArrayByBirthDateBetween(from,to))
+                .map(this::responseTypeOfEntity)
+                .toArray(PersonDto[]::new);
 
     }
 
-    //TODO
     @Override
     public Iterable<CityPopulationDto> getCitiesPopulation() {
         return personRepository.getCitiesPopulation();
+    }
+
+    @Override
+    public PersonDto[] findAllChild() {
+        return modelMapper.map(personRepository.findAllPersonTypeChild(), ChildDto[].class);
+    }
+
+    @Override
+    public PersonDto[] findAllEmployeeBySalaryBetween(int minSalary, int maxSalary) {
+        return modelMapper.map(personRepository.findEmployeeBySalaryBetween(minSalary, maxSalary), EmployeeDto[].class);
     }
 
     @Override
@@ -173,5 +132,25 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
             personRepository.saveAll(Arrays.asList(person, child, emploee));
 
         }
+    }
+
+    private Person responseTypeOfEntityDto(PersonDto personDto) {
+        if (personDto instanceof ChildDto) {
+            return modelMapper.map(personDto, Child.class);
+        }
+        if (personDto instanceof EmployeeDto) {
+            return modelMapper.map(personDto, Employee.class);
+        }
+        return modelMapper.map(personDto, Person.class);
+    }
+
+    private PersonDto responseTypeOfEntity(Person person) {
+        if (person instanceof Child) {
+            return modelMapper.map(person, ChildDto.class);
+        }
+        if (person instanceof Employee) {
+            return modelMapper.map(person, EmployeeDto.class);
+        }
+        return modelMapper.map(person, PersonDto.class);
     }
 }

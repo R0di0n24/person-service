@@ -11,7 +11,7 @@ import telran.java58.person.service.PersonService;
 @RestController
 @RequestMapping("/person")
 @RequiredArgsConstructor
-public class PersonController {
+public class PersonController{
     private final PersonService personService;
 
     @PostMapping
@@ -40,6 +40,7 @@ public class PersonController {
         return personService.updatePersonAddress(id, address);
     }
 
+
     @GetMapping("/name/{name}")
     public PersonDto[] getPersonsByName(@PathVariable String name) {
         return personService.findPersonsByName(name);
@@ -59,6 +60,17 @@ public class PersonController {
     public Iterable<CityPopulationDto> getCityPopulation() {
         return personService.getCitiesPopulation();
     }
+    @GetMapping("/children")
+    public PersonDto[] findAllChild() {
+        return personService.findAllChild();
+    }
+
+    @GetMapping("/salary/{from}/{to}")
+    public PersonDto[] findAllEmployeeBySalaryBetween(@PathVariable int from,@PathVariable int to) {
+        return personService.findAllEmployeeBySalaryBetween(from, to);
+    }
+
+
 
 
 
